@@ -1,8 +1,99 @@
+.title {
+    position: absolute;
+    background: linear-gradient(to right, rgba(81, 116, 33, 0.8), rgba(220, 25, 25, 0.8));
+    top: 5;
+    left: 5;
+    margin: 0 10px 30px 0;
+    padding: 10px;
+    border-radius: 8px;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.085);
+    max-width: 3500px;
+    font-size: 30px;
+    color: white
+}
+
+.instructions {
+    position: absolute;
+    background-color:rgba(236, 242, 235, 0.286);
+    bottom: 300px;
+    right: 0px;
+    margin: 0 10px 30px 0;
+    padding: 10px;
+    border-radius: 8px;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.085);
+    max-width: 350px;
+    font-size: 18px;
+}
+
 .map {
     position: absolute;
-    top: 0;
+    top: 0px;
     bottom: 0;
     left: 0;
     right: 0;
     width: 100%;
+}
+
+.legend {
+    position: absolute;
+    background-color: rgba(255, 255, 255, 0.741);
+    bottom: 0;
+    right: 0;
+    margin: 0 10px 30px 0;
+    padding: 10px;
+    border-radius: 8px;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.085);
+    max-width: 350px;
+    font-size: 18px;
+}
+
+.legend h4 {
+    margin: 0 0 10px;
+}
+
+.legend div {
+    margin-bottom: 5px;
+}
+
+.legend span {
+    display: inline-block;
+    border-radius: 50%;
+    /*curve border to make a circle*/
+    height: 10px;
+    /*size of circle*/
+    width: 10px;
+    margin-right: 5px;
+    /*position of circle*/
+}
+
+.legend div:nth-child(2) span {
+    background-color: #D4D29B;
+}
+
+.legend div:nth-child(3) span {
+    background-color: #B6B254;
+}
+
+.legend div:nth-child(4) span {
+    background-color: #F2BF40;
+}
+
+.legend div:nth-child(5) span {
+    background-color: #E7A14D;
+}
+
+.legend div:nth-child(6) span {
+    background-color: #DA6E2F;
+}
+
+.legend div:nth-child(7) span {
+    background-color: #B74D2A;
+}
+
+.legend div:nth-child(8) span {
+    background-color: #AB2611;
+}
+
+.legend div:nth-child(9) span {
+    background-color: #761005;
 }

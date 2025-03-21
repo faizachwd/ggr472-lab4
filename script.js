@@ -1,10 +1,3 @@
-/*--------------------------------------------------------------------
-GGR472 LAB 4: Incorporating GIS Analysis into web maps using Turf.js 
---------------------------------------------------------------------*/
-
-/*--------------------------------------------------------------------
-Step 1: INITIALIZE MAP
---------------------------------------------------------------------*/
 // Define access token
 mapboxgl.accessToken = 'pk.eyJ1IjoiZmFpemExMzIiLCJhIjoiY201d3E1Y2JwMDByYzJrb290MWltMTN1dyJ9.JsEiKVuT3vMCT8JQDlDA4g'; //****ADD YOUR PUBLIC ACCESS TOKEN*****
 
@@ -12,14 +5,12 @@ mapboxgl.accessToken = 'pk.eyJ1IjoiZmFpemExMzIiLCJhIjoiY201d3E1Y2JwMDByYzJrb290M
 const map = new mapboxgl.Map({
     container: 'map', // container id in HTML
     style: 'mapbox://styles/faiza132/cm72f283a007a01quayc2g04v',  // ****ADD MAP STYLE HERE *****
-    center: [-79.39, 43.65],  // starting point, longitude/latitude
-    zoom: 11 // starting zoom level
+    center: [-79.3, 43.7],  // starting point, longitude/latitude
+    zoom: 10.5 // starting zoom level
 });
 
+map.addControl(new mapboxgl.NavigationControl());
 
-/*--------------------------------------------------------------------
-Step 2: VIEW GEOJSON POINT DATA ON MAP
---------------------------------------------------------------------*/
 // creating an empty variable
 let collision;
 
@@ -30,6 +21,10 @@ fetch('https://raw.githubusercontent.com/faizachwd/ggr472-lab4/refs/heads/main/d
         collision = response; // Store geojson as variable using URL from fetch response
 
         map.on('load', () => {
+
+            // disabling double click zoom because I use double click for interactivity
+            map.doubleClickZoom.disable();
+
 
             let evnresult = turf.envelope(collision);
             let bbox = turf.transformScale(evnresult, 1.1);
@@ -49,13 +44,12 @@ fetch('https://raw.githubusercontent.com/faizachwd/ggr472-lab4/refs/heads/main/d
             // using bounding box coordinates as argument in the turf hexgrid function
             let hexdata = turf.hexGrid(bbox_coords, 0.5, { units: "kilometers" });
 
-            console.log('hexdata', hexdata)
-
+            //creating hexagons and collecting how many collisons per hexagon
             let collishex = turf.collect(hexdata, collision, '_id', 'values');
-            console.log('collishex', collishex)
 
             let maxcollis = 0;
 
+            // finding max number of collisions
             collishex.features.forEach((feature) => {
                 feature.properties.COUNT = feature.properties.values.length
                 if (feature.properties.COUNT > maxcollis) {
@@ -63,9 +57,10 @@ fetch('https://raw.githubusercontent.com/faizachwd/ggr472-lab4/refs/heads/main/d
                     maxcollis_id = feature.properties._id
                 }
             });
-            
-            console.log('maxcollis',maxcollis)
-            
+
+            // iterating over each feature in collishex using .map, and extracting the count to figure out colour grading
+            console.log(new Set(collishex.features.map(f => f.properties.COUNT)));
+
             map.addSource('hexgrid', {
                 type: 'geojson',
                 data: collishex
@@ -75,43 +70,78 @@ fetch('https://raw.githubusercontent.com/faizachwd/ggr472-lab4/refs/heads/main/d
                 'id': 'hex_layer',
                 'source': 'hexgrid',
                 'type': 'fill',
-                'paint': { 
+                'paint': {
+                    "fill-outline-color": 'white',
                     "fill-color": [
                         "step",
                         ["get", "COUNT"],
-                        "#D59967",
-                        10, "#EE6055",
-                        25, "#D59967",
-                        maxcollis, ''
+                        "#D4D29B", //1-4,
+                        5, "#B6B254", // 5-9
+                        10, "#F2BF40", // 10-19
+                        20, "#E7A14D", //20-29
+                        30, "#DA6E2F", // 30-39
+                        40, "#B74D2A",// 40-49
+                        50, "#AB2611",//50-54, because 55 is maxcollis but in any case it would be 50-maxcollis
+                        maxcollis, "#761005"
                     ],
-                    "fill-opacity": 0.8
+                    "fill-opacity": 0.9
                 },
-                filter: ["!=", 'COUNT', 0],
+                filter: ["!=", "COUNT", 0]
             })
 
         });
 
     });
 
+// Popup on click, and remove popup on second click
+let popup = new mapboxgl.Popup()
 
-// creating a bounding box around the collision point data and scaling it up
+//sets click status of hexagon to false
+let popup_click = false
 
-/*--------------------------------------------------------------------
-Step 4: AGGREGATE COLLISIONS BY HEXGRID
---------------------------------------------------------------------*/
-//HINT: Use Turf collect function to collect all '_id' properties from the collision points data for each heaxagon
-//      View the collect output in the console. Where there are no intersecting points in polygons, arrays will be empty
+map.on('click', 'hex_layer', (e) => {
+    //if the hexagon is being clicked for the first time, the popup will appear
+    if (!popup_click) {
+        map.getCanvas().style.cursor = 'pointer';
+        popup
+            .setLngLat(e.lngLat)
+            .setHTML("<b>Number of Collisions:</b><br>" + e.features[0].properties.COUNT)
+            .addTo(map);
+        // setting popup_click = true so that next time the user clicks the map runs the else statement
+
+        popup_click = true
+    }
+    // if popup_click = true, its already highlighting some hexagons so we want to undo that with this dblclick
+
+    else {
+        popup.remove
+        //setting popup_click to false so the process can start again
+
+        popup_click = false
+    }
+});
 
 
+// Method that changes the hexagons displayed based on an event: upon clicking a point it hides all other points that do not have the same number of collisions
+//sets dblclick status of a hexagon to false
+let click_active = false;
 
-// /*--------------------------------------------------------------------
-// Step 5: FINALIZE YOUR WEB MAP
-// --------------------------------------------------------------------*/
-//HINT: Think about the display of your data and usability of your web map.
-//      Update the addlayer paint properties for your hexgrid using:
-//        - an expression
-//        - The COUNT attribute
-//        - The maximum number of collisions found in a hexagon
-//      Add a legend and additional functionality including pop-up windows
+map.on('dblclick', 'hex_layer', (e) => {
+    if (e.features.length > 0) {
+        //if the hexagon is being dbl clicked for the first time (click_active = false) then the map will filter to only features of that colour
+        if (!click_active) {
+            map.setFilter('hex_layer',
+                ['==', ['get', 'COUNT'], e.features[0].properties.COUNT])
+            // setting click_active = true so that next time the user dblclicks the map runs the else statement
+            click_active = true
+        }
 
+        // if click_active = true, its already highlighting some hexagons so we want to undo that with this dblclick
+        else {
+            map.setFilter('hex_layer', ["!=", "COUNT", 0]);
+            //setting click_active to false so the process can start again
+            click_active = false
+        }
+    }
+});
 
