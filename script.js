@@ -6,7 +6,7 @@ const map = new mapboxgl.Map({
     container: 'map', // container id in HTML
     style: 'mapbox://styles/faiza132/cm72f283a007a01quayc2g04v',  // ****ADD MAP STYLE HERE *****
     center: [-79.3, 43.7],  // starting point, longitude/latitude
-    zoom: 10.5 // starting zoom level
+    zoom: 11 // starting zoom level
 });
 
 map.addControl(new mapboxgl.NavigationControl());
