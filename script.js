@@ -60,6 +60,7 @@ fetch('https://raw.githubusercontent.com/faizachwd/ggr472-lab4/refs/heads/main/d
                 feature.properties.COUNT = feature.properties.values.length
                 if (feature.properties.COUNT > maxcollis) {
                     maxcollis = feature.properties.COUNT
+                    maxcollis_id = feature.properties._id
                 }
             });
             
